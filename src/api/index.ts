@@ -1,4 +1,4 @@
-import type {User, Post, NewPost} from "../types";
+import type {User, Post, NewPost, UpdatePost} from "../types";
 
 const BASE_URL = "https://jsonplaceholder.typicode.com";
 
@@ -22,6 +22,16 @@ export const api = {
       headers: {"Content-type": "application/json; charset=UTF-8"},
     });
     if (!res.ok) throw new Error("Failed to create post");
+    return res.json();
+  },
+
+  updatePost: async (post: UpdatePost): Promise<Post> => {
+    const res = await fetch(`${BASE_URL}/posts/${post.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(post),
+      headers: {"Content-type": "application/json; charset=UTF-8"},
+    });
+    if (!res.ok) throw new Error("Failed to update post");
     return res.json();
   },
 };

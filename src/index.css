@@ -131,21 +131,30 @@ p { margin: 4px 0 0; }
 
 .create-post-form {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   margin-bottom: 24px;
 }
 
-.create-post-form input {
-  flex: 1;
+.create-post-form input,
+.create-post-form textarea {
+  width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card-bg);
   color: var(--text);
   font-size: 0.875rem;
+  font-family: inherit;
 }
 
-.create-post-form input:focus {
+.create-post-form textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.create-post-form input:focus,
+.create-post-form textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-bg);
@@ -203,4 +212,100 @@ p { margin: 4px 0 0; }
 
 .post-card p {
   font-size: 0.875rem;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.post-header h3 {
+  margin: 0;
+}
+
+.btn-edit {
+  padding: 4px 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-edit:hover {
+  border-color: var(--accent);
+}
+
+.edit-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-post-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-post-fields input,
+.edit-post-fields textarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.edit-post-fields textarea {
+  min-height: 60px;
+}
+
+.edit-post-fields input:focus,
+.edit-post-fields textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.edit-post-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-post-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.edit-post-actions button[type="submit"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.edit-post-actions button[type="submit"]:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.edit-post-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: var(--accent-bg);
+  color: var(--text);
 }

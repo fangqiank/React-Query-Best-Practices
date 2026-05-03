@@ -38,5 +38,7 @@ src/components/*.tsx  → useSuspenseQuery / useMutation 消费查询
 | `useSuspenseQuery` | 组件使用 Suspense 模式，data 始终有值 |
 | Query Key 层级 | `["users", "list"]` / `["users", "detail", id]` / `["posts", "byUser", userId]` |
 | `setQueryData` | mutation 成功后直接更新缓存，而非 refetch（因为 JSONPlaceholder 不持久化 POST） |
+| Create Post | `POST /posts`，成功后 `setQueryData` 追加新帖子到缓存列表 |
+| Update Post | `PATCH /posts/:id`，成功后 `setQueryData` 替换缓存中对应帖子 |
 | 路由预取 | `queryClient.ensureQueryData()` 配合路由 `loader` |
 | 懒加载 | 路由组件 `lazy()` + `Suspense` fallback |

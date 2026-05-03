@@ -40,3 +40,9 @@ export interface NewPost {
   userId: number;
   body: string;
 }
+
+export interface UpdatePost {
+  id: number;
+  title?: string;
+  body?: string;
+}
