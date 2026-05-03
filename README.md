@@ -129,3 +129,25 @@ onSuccess: () => {
 
 - **模拟 API / 已知确切返回值** → `setQueryData`（即时、无网络开销）
 - **真实后端** → `invalidateQueries`（重新 fetch 保证数据一致）
+
+### queryOptions 中的 enabled — 条件开关
+
+`enabled` 控制查询是否执行，`false` 时不发请求，查询处于暂停状态。
+
+```ts
+queryOptions({
+  queryKey: postKeys.byUser(userId),
+  queryFn: () => api.fetchPostsByUserId(Number(userId)),
+  enabled: Boolean(userId),  // userId 存在时才发请求
+})
+```
+
+| `enabled` 值 | 行为 | 查询状态 |
+|---|---|---|
+| `true` | 自动发请求 | `pending` → `success` / `error` |
+| `false` | 不发请求，不进缓存 | `status: "pending"`，`fetchStatus: "idle"` |
+
+典型用法：
+- **依赖前置数据**：`enabled: Boolean(userId)` — 参数没准备好不请求
+- **多条件依赖**：`enabled: Boolean(userId) && Boolean(postId)`
+- **手动触发**：`enabled: false` 配合 `refetch()` 手动控制
