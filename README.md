@@ -98,3 +98,34 @@ const UserList = lazy(() => import('./components/UserList'))
 | 手动处理 error | 需要 `if (isError)` | 不需要，Error Boundary 统一处理 |
 
 本项目统一使用 `useSuspenseQuery`，组件内只需关注数据本身，loading/error 交给外层 `<Suspense>` 和 Error Boundary。
+
+### setQueryData vs invalidateQueries (refetch)
+
+| | `setQueryData` | `invalidateQueries` + refetch |
+|---|---|---|
+| 触发网络请求 | 不发请求，直接改缓存 | 重新发 fetch 请求 |
+| 数据来源 | mutation 的返回值 | 服务器最新数据 |
+| 速度 | 即时，无网络延迟 | 需等请求完成 |
+| 准确性 | 自己保证数据正确 | 服务器是唯一真相 |
+
+**本项目使用 `setQueryData` 的原因**：JSONPlaceholder 是模拟 API，POST 请求不会真正持久化数据。如果用 `invalidateQueries` 触发重新 fetch，服务器返回的还是原数据——刚创建的帖子会"消失"。所以必须用 `setQueryData` 直接把新数据写入缓存。
+
+```ts
+// 创建帖子：直接把 newPost 追加到缓存
+onSuccess: (newPost) => {
+  queryClient.setQueryData(postKeys.byUser(userId), (old) =>
+    old ? [...old, newPost] : [newPost]
+  )
+}
+```
+
+**真实后端场景应使用 `invalidateQueries`**：数据会持久化到数据库，重新 fetch 能拿到包含新数据的完整列表，服务器是权威数据源，refetch 更可靠。
+
+```ts
+onSuccess: () => {
+  queryClient.invalidateQueries({ queryKey: postKeys.byUser(userId) })
+}
+```
+
+- **模拟 API / 已知确切返回值** → `setQueryData`（即时、无网络开销）
+- **真实后端** → `invalidateQueries`（重新 fetch 保证数据一致）
