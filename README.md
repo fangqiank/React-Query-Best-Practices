@@ -298,3 +298,90 @@ queryKey: ['posts', 2]  → 第 3 页缓存
 | 翻页体验 | 保留旧数据，无缝替换 | 挂起组件，显示 fallback |
 | 缓存 | 每页独立缓存，来回翻秒出 | 同样独立缓存 |
 | 适用场景 | 列表分页，追求平滑 | 首次加载为主 |
+
+### Infinite Queries — 无限滚动加载
+
+用 `useInfiniteQuery` 实现"加载更多"或"无限滚动"，数据**逐页累积**而不是替换。
+
+```tsx
+import { useInfiniteQuery } from '@tanstack/react-query'
+
+function InfinitePosts() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['posts'],
+    queryFn: async ({ pageParam }) => {
+      const res = await fetch(`/api/posts?cursor=${pageParam}&limit=10`)
+      return res.json() // { data: [...], nextCursor: 123 }
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  })
+
+  return (
+    <>
+      {data?.pages.map((page) =>
+        page.data.map(post => <p key={post.id}>{post.title}</p>)
+      )}
+      <button
+        onClick={() => fetchNextPage()}
+        disabled={!hasNextPage || isFetchingNextPage}
+      >
+        {isFetchingNextPage ? '加载中...' : hasNextPage ? '加载更多' : '没有更多了'}
+      </button>
+    </>
+  )
+}
+```
+
+**数据累积结构**：
+
+```ts
+// 普通分页 useQuery：每次只存一页
+data = [{ id: 1 }, { id: 2 }, ...]          // 第 2 页（第 1 页没了）
+
+// 无限查询 useInfiniteQuery：所有页累积
+data = {
+  pages: [
+    { data: [{ id: 1 }, { id: 2 }] },        // 第 1 页
+    { data: [{ id: 3 }, { id: 4 }] },        // 第 2 页
+    { data: [{ id: 5 }, { id: 6 }] },        // 第 3 页
+  ],
+  pageParams: [0, 123, 456],                  // 每页的参数
+}
+```
+
+**核心参数**：
+
+- `initialPageParam` — 首次请求的参数值
+- `getNextPageParam` — 返回下一页参数，返回 `undefined` 表示没有更多了
+- `fetchNextPage()` — 手动触发加载下一页
+- `hasNextPage` — 是否还有下一页
+
+**配合 IntersectionObserver 自动加载**：
+
+```tsx
+const lastElementRef = useCallback((node) => {
+  if (isFetchingNextPage) return
+  if (observerRef.current) observerRef.current.disconnect()
+  observerRef.current = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && hasNextPage) {
+      fetchNextPage()
+    }
+  })
+  if (node) observerRef.current.observe(node)
+}, [isFetchingNextPage, hasNextPage, fetchNextPage])
+```
+
+**与普通分页对比**：
+
+| | `useQuery` 分页 | `useInfiniteQuery` 无限滚动 |
+|---|---|---|
+| 数据结构 | 每页独立，来回翻页 | 所有页累积，只往后加载 |
+| 翻页方式 | 上一页 / 下一页 | 加载更多 / 无限滚动 |
+| 缓存 | 每页一个缓存条目 | 一个 queryKey 存所有页 |
+| 适用场景 | 搜索结果、表格分页 | 社交动态、商品列表流 |
