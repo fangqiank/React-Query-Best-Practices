@@ -244,3 +244,57 @@ useMutation({
 | UI 更新时机 | 立刻（不等服务器） | 等服务器确认后 |
 | 需要回滚 | 是，失败要恢复 | 不需要，只有成功才更新 |
 | 适用场景 | 要求即时反馈 | 数据准确性优先 |
+
+### Pagination — 分页查询
+
+核心：**页码加入 queryKey**（每页独立缓存）+ **`keepPreviousData`**（翻页保留旧数据避免闪烁）。
+
+```tsx
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+
+function PostList() {
+  const [page, setPage] = useState(0)
+
+  const { data, isFetching, isPlaceholderData } = useQuery({
+    queryKey: ['posts', page],           // page 变了 → 新缓存条目 → 自动 refetch
+    queryFn: () => fetchPosts(page),
+    placeholderData: keepPreviousData,    // 翻页时保留上一页数据，避免闪烁
+  })
+
+  return (
+    <>
+      {data?.map(post => <p key={post.id}>{post.title}</p>)}
+      <button onClick={() => setPage(old => Math.max(old - 1, 0))}>上一页</button>
+      <button onClick={() => setPage(old => old + 1)} disabled={isPlaceholderData}>下一页</button>
+      {isFetching && <span>加载中...</span>}
+    </>
+  )
+}
+```
+
+**queryKey 与缓存对应关系**：
+
+```
+queryKey: ['posts', 0]  → 第 1 页缓存
+queryKey: ['posts', 1]  → 第 2 页缓存
+queryKey: ['posts', 2]  → 第 3 页缓存
+```
+
+每个页码是独立缓存，来回翻页时已访问过的页面直接命中。
+
+**`keepPreviousData` 的作用**：
+
+```
+没有 keepPreviousData：翻页 → 旧数据消失 → loading → 新数据出现（闪烁）
+有 keepPreviousData：  翻页 → 旧数据继续显示 → 新数据静默替换（平滑）
+```
+
+**`isPlaceholderData`**：当前显示的是上一页的占位数据，非真实新页数据。可用于禁用翻页按钮防止重复点击。
+
+**两种策略对比**：
+
+| | `useQuery` + `keepPreviousData` | `useSuspenseQuery` |
+|---|---|---|
+| 翻页体验 | 保留旧数据，无缝替换 | 挂起组件，显示 fallback |
+| 缓存 | 每页独立缓存，来回翻秒出 | 同样独立缓存 |
+| 适用场景 | 列表分页，追求平滑 | 首次加载为主 |
