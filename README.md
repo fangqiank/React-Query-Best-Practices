@@ -24,11 +24,22 @@ pnpm lint
 ### 三层分离
 
 ```
-src/types/index.ts    → 共享类型定义
+src/types/index.ts    → 共享类型定义（User, Post, Photo）
 src/api/index.ts      → 纯 fetch 请求，不感知 React Query
-src/queries/*.ts      → 集中的 query keys + queryOptions() 工厂
-src/components/*.tsx  → useSuspenseQuery / useMutation 消费查询
+src/queries/*.ts      → 集中的 query keys + queryOptions() / infiniteQueryOptions() 工厂
+src/components/*.tsx  → useSuspenseQuery / useQuery / useInfiniteQuery / useMutation 消费查询
 ```
+
+### 页面路由
+
+| 路由 | 组件 | 查询模式 |
+|------|------|---------|
+| `/` | UserList | `useSuspenseQuery` + 路由预取 |
+| `/users/:userId/posts` | UserPosts | `useSuspenseQuery` + `useMutation` |
+| `/photos` | PhotoPagination | `useQuery` + `keepPreviousData` 分页 |
+| `/photos/infinite` | PhotoInfinite | `useInfiniteQuery` 无限滚动 |
+
+左侧 sidebar 导航栏展示所有路由，使用 `NavLink` 高亮当前页面。
 
 ### 关键实践
 
@@ -36,12 +47,15 @@ src/components/*.tsx  → useSuspenseQuery / useMutation 消费查询
 |------|------|
 | `queryOptions()` | 所有查询通过 `queryOptions()` 定义，组件不内联 queryKey/queryFn |
 | `useSuspenseQuery` | 组件使用 Suspense 模式，data 始终有值 |
-| Query Key 层级 | `["users", "list"]` / `["users", "detail", id]` / `["posts", "byUser", userId]` |
+| Query Key 层级 | `["users", "list"]` / `["posts", "byUser", userId]` / `["photos", "paginated", page, limit]` / `["photos", "infinite"]` |
 | `setQueryData` | mutation 成功后直接更新缓存，而非 refetch（因为 JSONPlaceholder 不持久化 POST） |
 | Create Post | `POST /posts`，成功后 `setQueryData` 追加新帖子到缓存列表 |
 | Update Post | `PATCH /posts/:id`，成功后 `setQueryData` 替换缓存中对应帖子 |
 | 路由预取 | `queryClient.ensureQueryData()` 配合路由 `loader` |
 | 懒加载 | 路由组件 `lazy()` + `Suspense` fallback |
+| Photos 分页 | `useQuery` + `keepPreviousData`，page 放入 queryKey 实现独立缓存 |
+| Photos 无限滚动 | `useInfiniteQuery` + `getNextPageParam`，数据逐页累积 |
+| 左侧导航 | `NavLink` 展示所有路由，active 状态高亮 |
 
 ## 核心概念详解
 

@@ -1,4 +1,4 @@
-import type {User, Post, NewPost, UpdatePost} from "../types";
+import type {User, Post, NewPost, UpdatePost, Photo} from "../types";
 
 const BASE_URL = "https://jsonplaceholder.typicode.com";
 
@@ -32,6 +32,12 @@ export const api = {
       headers: {"Content-type": "application/json; charset=UTF-8"},
     });
     if (!res.ok) throw new Error("Failed to update post");
+    return res.json();
+  },
+
+  fetchPhotos: async (page: number, limit: number): Promise<Photo[]> => {
+    const res = await fetch(`${BASE_URL}/photos?_page=${page}&_limit=${limit}`);
+    if (!res.ok) throw new Error("Failed to fetch photos");
     return res.json();
   },
 };

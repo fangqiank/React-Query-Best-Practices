@@ -46,9 +46,7 @@ body {
 }
 
 #root {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px;
+  height: 100vh;
 }
 
 h1, h2, h3 {
@@ -308,4 +306,140 @@ p { margin: 4px 0 0; }
 .btn-cancel {
   background: var(--accent-bg);
   color: var(--text);
+}
+
+/* Layout */
+
+.app-layout {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--text-h);
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 10px 20px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.875rem;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sidebar-link:hover {
+  background: var(--accent-bg);
+}
+
+.sidebar-link.active {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+}
+
+/* Photos */
+
+.photos-container {
+  text-align: center;
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.photo-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.photo-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.photo-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.photo-card p {
+  font-size: 0.75rem;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.pagination-controls button {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: var(--text);
+  min-width: 100px;
+}
+
+.loading-hint {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text);
+  margin-top: 12px;
 }
