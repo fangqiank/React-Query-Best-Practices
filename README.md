@@ -195,3 +195,52 @@ useSuspenseQuery({
 ```
 
 本项目当前未设定，默认 `0`（每次 mount 都 refetch）。
+
+### useMutation 回调执行顺序
+
+```ts
+useMutation({
+  mutationFn: api.createPost,
+  onMutate: (variables) => {    // 1. 请求发出前，最先执行
+  },
+  onSuccess: (data, variables, context) => {  // 2. 请求成功后
+  },
+  onError: (error, variables, context) => {    // 2. 请求失败后
+  },
+  onSettled: (data, error, variables, context) => {  // 3. 无论成功失败都执行
+  },
+})
+```
+
+### onMutate — 乐观更新
+
+`onMutate` 在 mutation 请求发出**前**执行，核心用途是乐观更新：不等服务器响应，先假设成功更新 UI，失败再回滚。
+
+```ts
+useMutation({
+  mutationFn: (newTitle) => api.updatePost({ id: 1, title: newTitle }),
+  onMutate: async (newTitle) => {
+    // 1. 取消正在进行的查询，避免覆盖乐观更新
+    await queryClient.cancelQueries({ queryKey: postKeys.byUser(userId) })
+    // 2. 保存当前缓存快照，用于失败时回滚
+    const previousPosts = queryClient.getQueryData(postKeys.byUser(userId))
+    // 3. 乐观更新：先改缓存，UI 立刻反映
+    queryClient.setQueryData(postKeys.byUser(userId), (old) =>
+      old?.map(p => p.id === 1 ? { ...p, title: newTitle } : p)
+    )
+    // 4. 返回快照，供 onError 回滚使用
+    return { previousPosts }
+  },
+  onError: (err, newTitle, context) => {
+    // 失败了，用快照回滚
+    queryClient.setQueryData(postKeys.byUser(userId), context.previousPosts)
+  },
+})
+```
+
+| | `onMutate`（乐观更新） | `onSuccess`（本项目用法） |
+|---|---|---|
+| 执行时机 | 请求发出**前** | 请求成功**后** |
+| UI 更新时机 | 立刻（不等服务器） | 等服务器确认后 |
+| 需要回滚 | 是，失败要恢复 | 不需要，只有成功才更新 |
+| 适用场景 | 要求即时反馈 | 数据准确性优先 |
