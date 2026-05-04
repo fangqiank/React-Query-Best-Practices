@@ -38,6 +38,11 @@ export const api = {
   fetchPhotos: async (page: number, limit: number): Promise<Photo[]> => {
     const res = await fetch(`${BASE_URL}/photos?_page=${page}&_limit=${limit}`);
     if (!res.ok) throw new Error("Failed to fetch photos");
-    return res.json();
+    const photos: Photo[] = await res.json();
+    return photos.map(photo => ({
+      ...photo,
+      thumbnailUrl: `https://picsum.photos/seed/${photo.id}/150/150`,
+      url: `https://picsum.photos/seed/${photo.id}/800/600`,
+    }));
   },
 };
