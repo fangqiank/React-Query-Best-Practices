@@ -151,3 +151,47 @@ queryOptions({
 - **依赖前置数据**：`enabled: Boolean(userId)` — 参数没准备好不请求
 - **多条件依赖**：`enabled: Boolean(userId) && Boolean(postId)`
 - **手动触发**：`enabled: false` 配合 `refetch()` 手动控制
+
+### staleTime — 数据保鲜期
+
+`staleTime` 控制数据从"新鲜"变为"过期"的时间，设在 `queryOptions` 里。
+
+```
+数据获取后 ──→ fresh（新鲜期）──→ stale（过期）
+               ←── staleTime ──→
+
+fresh 期间：组件重新 mount 直接用缓存，不发请求
+stale 之后：组件重新 mount 会触发后台 refetch
+```
+
+| `staleTime` | 行为 |
+|---|---|
+| `0`（默认） | 数据拿到就立刻变 stale，每次 mount 都 refetch |
+| `5 * 60 * 1000` | 5 分钟内不 refetch |
+| `Infinity` | 永远不会自动 refetch |
+
+三种设定层级：
+
+```ts
+// 1. 全局默认（App.tsx）
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 5 * 60 * 1000 }
+  }
+})
+
+// 2. queryOptions 中单独设定（推荐）
+queryOptions({
+  queryKey: postKeys.byUser(userId),
+  queryFn: () => api.fetchPostsByUserId(Number(userId)),
+  staleTime: 10 * 60 * 1000,
+})
+
+// 3. useSuspenseQuery 中覆盖
+useSuspenseQuery({
+  ...postQueries.byUser(userId),
+  staleTime: 2 * 60 * 1000,
+})
+```
+
+本项目当前未设定，默认 `0`（每次 mount 都 refetch）。
